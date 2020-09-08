@@ -1,0 +1,23 @@
+---
+- hosts: mydatabases
+
+  become: true
+  
+  tasks:
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Install MariaDB Server
+      apt: name=mariadb-server state=latest
+      notify: restart mariadb
+      
+    - name: Install MariaDB client
+      apt: name=mariadb-client state=latest
+      notify: restart mariadb
+      
+  handlers:
+    - name: restart mariadb
+      service: name=mariadb state=restarted
+      
+  
+

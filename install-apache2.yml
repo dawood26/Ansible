@@ -1,0 +1,57 @@
+---
+- hosts: mydatabases
+
+  become: true
+  
+  vars:
+     packages: ['php7.4','libapache2-mod-php7.4','php7.4-cgi','php7.4-cli','php7.4-common','php7.4-curl','php7.4-dev','php7.4-gd','php7.4-gmp','php7.4-json','php7.4-ldap','php7.4-mysql','php7.4-odbc','php7.4-opcache','php7.4-pgsql','php7.4-pspell','php7.4-readline','php7.4-snmp','php7.4-sqlite3','php7.4-tidy','php7.4-xml','php7.4-xmlrpc','libgv-php7','libow-php7','libphp7.4-embed','php7.4-bcmath','php7.4-bz2','php7.4-dba','php7.4-enchant','php7.4-fpm','php7.4-imap','php7.4-interbase','php7.4-intl','php7.4-mbstring','php7.4-phpdbg','php7.4-soap','php7.4-sybase','php7.4-xsl','php7.4-zip']
+  
+  tasks:
+    - name: Update apt
+      apt: update_cache=yes
+
+    - name: Install Apache
+      apt: name=apache2 state=latest
+      notify: restart apache
+      
+    - name: Install MariaDB Server
+      apt: name=mariadb-server state=latest
+      notify: restart mariadb
+      
+    - name: Install MariaDB client
+      apt: name=mariadb-client state=latest
+      notify: restart mariadb
+      
+    - name: Install PHP Package
+      apt: name={{ item }} state=latest
+      with_items: "{{ packages }}"
+
+    - name: Install unzip package
+      apt: name=unzip state=latest
+
+    - name: Download phpmyadmin
+      get_url:
+        url: https://files.phpmyadmin.net/phpMyAdmin/4.9.5/phpMyAdmin-4.9.5-english.zip
+        dest: /var/www/html/phpMyAdmin-4.9.5-english.zip
+        checksum: sha256:https://files.phpmyadmin.net/phpMyAdmin/4.9.5/phpMyAdmin-4.9.5-english.zip.sha256
+
+    - name: Unarchive phpmyadmin file
+      unarchive:
+        src: /var/www/html/phpMyAdmin-4.9.5-english.zip
+        dest: /var/www/html
+        remote_src: yes
+
+    - name: Rename phpmyadmin folder
+      command: mv /var/www/html/phpMyAdmin-4.9.5-english /var/www/html/phpmyadmin
+        
+  handlers:
+    - name: restart apache
+      service: name=apache2 state=restarted
+    - name: restart mariadb
+      service: name=mariadb state=restarted
+
+
+     
+      
+  
+
